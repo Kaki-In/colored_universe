@@ -2,12 +2,17 @@ from .color_pattern import ColorPattern
 
 import abc as _abc
 
-class ColoredDevice(_abc.ABC):
-    def __init__(self, typename: str, name: str, default_color: ColorPattern) -> None:
+class ColoredDevice[PatternType: ColorPattern](_abc.ABC):
+    def __init__(self, typename: str, name: str, default_color: PatternType) -> None:
         self.__device_name = typename + ":" + name
         self.__device_color = default_color
 
         self.apply()
+    
+    @property
+    @_abc.abstractmethod
+    def zones_count(self) -> int:
+        ...
     
     def on_integrated(self) -> None:
         pass
@@ -25,14 +30,19 @@ class ColoredDevice(_abc.ABC):
         return self.__device_name
     
     @property
-    def pattern(self) -> ColorPattern:
+    def pattern(self) -> PatternType:
         return self.__device_color
     
-    def set_pattern(self, color: ColorPattern) -> None:
+    @pattern.setter
+    def pattern(self, color: PatternType) -> None:
         self.__device_color = color
         self.apply()
 
     @_abc.abstractmethod
     def apply(self) -> None:
+        ...
+        
+    @_abc.abstractmethod
+    def apply_no_pattern(self) -> None:
         ...
 

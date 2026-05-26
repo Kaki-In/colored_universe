@@ -63,8 +63,8 @@ class ColoredDevicesManager():
         return self.__configuration
     
     @property
-    def provider_assignments(self) -> dict[str, list[ColoredDevice]]:
-        providers_assignment: dict[str, list[ColoredDevice]] = {}
+    def provider_assignments(self) -> dict[str | None, list[ColoredDevice]]:
+        providers_assignment: dict[str | None, list[ColoredDevice]] = { None: [] }
 
         assignators = self.__plugins.assignators
 
@@ -74,14 +74,20 @@ class ColoredDevicesManager():
         for device in self.__devices:
             device_assignator = device.assignator_name
 
+            found_provider = False
+            
             for assignator in assignators:
                 if assignator.name == device_assignator:
                     device_provider = assignator.get_assigned_provider_for_device(device)
 
                     if device_provider in providers_assignment:
                         providers_assignment[device_provider].append(device)
+                        found_provider = True
                     
                     break
+            
+            if device_assignator is None or not found_provider:
+                providers_assignment[None].append(device)
 
         return providers_assignment
     
@@ -96,10 +102,13 @@ class ColoredDevicesManager():
             thread = _threading.Thread(target=provider.apply_pattern, args=(devices,))
             threads.append((thread, provider))
         
+        for device in providers_assignment[None]:
+            device.apply_no_pattern()
+        
         for thread, _ in threads:
             thread.start()
 
-        _time.sleep(0.01)
+        _time.sleep(0.08)
             
         for thread, provider in threads:
             try:
