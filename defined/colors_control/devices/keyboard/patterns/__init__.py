@@ -1,0 +1,3 @@
+from .simple_pattern import SimpleKeyboardColorPattern
+from .complex_pattern import ComplexKeyboardColorPattern
+from .keyboard_pattern import KeyboardPattern

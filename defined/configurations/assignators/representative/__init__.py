@@ -1,0 +1,1 @@
+from .assignator_directory import RepresentativeAssignatorDirectory
