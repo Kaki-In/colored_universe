@@ -15,40 +15,48 @@ class Plugin():
                  dependencies: list[str],
                  namespace: dict[str, dict]) -> None:
 
-        self._name = name
+        self.__name = name
 
-        self._path = pathname
+        self.__path = pathname
 
-        self._device_scanners = devices_scanners
-        self._providers_scanners = providers_scanners
-        self._assignators = assignators
+        self.__device_scanners = devices_scanners
+        self.__providers_scanners = providers_scanners
+        self.__assignators = assignators
 
-        self._dependencies = dependencies
-        self._namespace = namespace
+        self.__dependencies = dependencies
+        self.__namespace = namespace
 
-        self._sha256 = hash
+        self.__sha256 = hash
 
-    def get_name(self) -> str:
-        return self._name
+    @property
+    def name(self) -> str:
+        return self.__name
     
-    def get_pathname(self) -> str:
-        return self._path
+    @property
+    def pathname(self) -> str:
+        return self.__path
     
-    def get_hash(self) -> str:
-        return self._sha256
+    @property
+    def hash(self) -> str:
+        return self.__sha256
     
-    def get_dependencies(self) -> list[str]:
-        return self._dependencies
+    @property
+    def dependencies(self) -> list[str]:
+        return self.__dependencies
     
-    def get_namespace(self) -> dict[str, dict]:
-        return self._namespace
+    @property
+    def namespace(self) -> dict[str, dict]:
+        return self.__namespace
 
-    def get_devices_scanners(self) -> _T.Sequence[DevicesScanner]:
-        return self._device_scanners
+    @property
+    def devices_scanners(self) -> _T.Sequence[DevicesScanner]:
+        return self.__device_scanners
 
-    def get_providers_scanners(self) -> _T.Sequence[ProvidersScanner]:
-        return self._providers_scanners
+    @property
+    def providers_scanners(self) -> _T.Sequence[ProvidersScanner]:
+        return self.__providers_scanners
 
-    def get_assignators(self) -> _T.Sequence[DeviceProviderAssignator]:
-        return self._assignators
+    @property
+    def assignators(self) -> _T.Sequence[DeviceProviderAssignator]:
+        return self.__assignators
 

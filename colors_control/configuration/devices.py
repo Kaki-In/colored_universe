@@ -1,6 +1,4 @@
 import configuration as _configuration
-import os as _os
-import typing as _T
 
 class DevicesScannersConfigurationDirectory(_configuration.SettingsDirectory):
     def __init__(self, pathname: str) -> None:

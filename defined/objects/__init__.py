@@ -1,6 +1,0 @@
-from .color import ColorPropertiesObject
-from .named_color import NamedColorPropertiesObject
-
-from .simple_keyboard_pattern import SimpleKeyboardPatternObject
-from .complex_keyboard_pattern import ComplexKeyboardPatternObject
-

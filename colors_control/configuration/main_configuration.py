@@ -13,25 +13,30 @@ class MainConfiguration(_configuration.SettingsDirectory):
     def __init__(self) -> None:
         super().__init__(DEFAULT_CONF_DIR)
 
-        self._providers_configuration = ProvidersScannersConfigurationDirectory(self._create_sub_element_path("providers"))
-        self._devices_configuration = DevicesScannersConfigurationDirectory(self._create_sub_element_path("devices"))
-        self._assignators_configuration = AssignatorsConfigurationDirectory(self._create_sub_element_path("assignators"))
+        self.__providers_configuration = ProvidersScannersConfigurationDirectory(self._create_sub_element_path("providers"))
+        self.__devices_configuration = DevicesScannersConfigurationDirectory(self._create_sub_element_path("devices"))
+        self.__assignators_configuration = AssignatorsConfigurationDirectory(self._create_sub_element_path("assignators"))
 
-        self._status_control = StatusControlConfiguration(self._create_sub_element_path("status_control"))
+        self.__status_control = StatusControlConfiguration(self._create_sub_element_path("status_control"))
     
-    def get_providers_configuration(self) -> ProvidersScannersConfigurationDirectory:
-        return self._providers_configuration
+    @property
+    def providers_configuration(self) -> ProvidersScannersConfigurationDirectory:
+        return self.__providers_configuration
     
-    def get_devices_configuration(self) -> DevicesScannersConfigurationDirectory:
-        return self._devices_configuration
+    @property
+    def devices_configuration(self) -> DevicesScannersConfigurationDirectory:
+        return self.__devices_configuration
     
-    def get_assignators_configuration(self) -> AssignatorsConfigurationDirectory:
-        return self._assignators_configuration
+    @property
+    def assignators_configuration(self) -> AssignatorsConfigurationDirectory:
+        return self.__assignators_configuration
     
-    def get_plugins_path(self) -> str:
+    @property
+    def plugins_path(self) -> str:
         return self._create_sub_element_path("plugins")
     
-    def get_status_control(self) -> StatusControlConfiguration:
-        return self._status_control
+    @property
+    def status_control(self) -> StatusControlConfiguration:
+        return self.__status_control
     
     

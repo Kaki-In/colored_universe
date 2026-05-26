@@ -1,6 +1,4 @@
 import configuration as _configuration
-import typing as _T
-import os as _os
 
 class ProvidersScannersConfigurationDirectory(_configuration.SettingsDirectory):
     def __init__(self, pathname: str):

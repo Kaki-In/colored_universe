@@ -1,22 +1,26 @@
 from .device import ColoredDevice
 import typing as _T
+import abc as _abc
 
-class ColorProvider:
+class ColorProvider(_abc.ABC):
     def __init__(self, type:str, name: str):
-        self._name = type + ((":" + name) if name else "")
+        self.__name = type + ((":" + name) if name else "")
 
     def on_start(self) -> None:
-        print("start providing color " + self._name)
+        print("start providing color " + self.__name)
 
     def on_terminate(self) -> None:
-        print("finished providing color " + self._name)
+        print("finished providing color " + self.__name)
 
-    def get_name(self) -> str:
-        return self._name
+    @property
+    def name(self) -> str:
+        return self.__name
 
+    @_abc.abstractmethod
     def can_handle(self, device: ColoredDevice) -> bool:
-        raise NotImplementedError("not implemented for " + repr(self))
+        ...
     
+    @_abc.abstractmethod
     def apply_pattern(self, devices: _T.Sequence[ColoredDevice]) -> None:
-        raise NotImplementedError("not implemented for " + repr(self))
+        ...
     

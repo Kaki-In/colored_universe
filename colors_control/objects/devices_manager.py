@@ -12,34 +12,36 @@ from ..configuration import *
 import time as _time
 import threading as _threading
 import sys as _sys
-import typing as _T
 
 class ColoredDevicesManager():
     def __init__(self, configuration: MainConfiguration) -> None:
         globals = {}
 
-        self._plugins = PluginsRegister(configuration.get_plugins_path(), globals)
+        self.__plugins = PluginsRegister(configuration.plugins_path, globals)
 
-        self._providers = ProvidersRegister(self._plugins)
-        self._devices = DevicesRegister(self._plugins)
+        self.__providers = ProvidersRegister(self.__plugins)
+        self.__devices = DevicesRegister(self.__plugins)
 
-        self._configuration = configuration
+        self.__configuration = configuration
 
-        globals["PROVIDERS"] = self._providers
-        globals["DEVICES"] = self._devices
-        globals["MAIN_CONFIGURATION"] = self._configuration
+        globals["PROVIDERS"] = self.__providers
+        globals["DEVICES"] = self.__devices
+        globals["MAIN_CONFIGURATION"] = self.__configuration
 
-    def get_providers(self) -> ProvidersRegister:
-        return self._providers
+    @property
+    def providers(self) -> ProvidersRegister:
+        return self.__providers
     
-    def get_plugins(self) -> PluginsRegister:
-        return self._plugins
+    @property
+    def plugins(self) -> PluginsRegister:
+        return self.__plugins
     
-    def get_devices(self) -> DevicesRegister:
-        return self._devices
+    @property
+    def devices(self) -> DevicesRegister:
+        return self.__devices
     
     def refresh_devices(self) -> None:
-        new_devices, deleted_devices = self._devices.reload_devices()
+        new_devices, deleted_devices = self.__devices.reload_devices()
 
         for old_device in deleted_devices:
             old_device.on_expulsed()
@@ -48,7 +50,7 @@ class ColoredDevicesManager():
             new_device.on_integrated()
         
     def refresh_providers(self) -> None:
-        new_providers, deleted_providers = self._providers.reload_providers()
+        new_providers, deleted_providers = self.__providers.reload_providers()
 
         for old_provider in deleted_providers:
             old_provider.on_terminate()
@@ -56,22 +58,24 @@ class ColoredDevicesManager():
         for new_provider in new_providers:
             new_provider.on_start()
         
-    def get_configuration(self) -> MainConfiguration:
-        return self._configuration
+    @property
+    def configuration(self) -> MainConfiguration:
+        return self.__configuration
     
-    def get_provider_assignments(self) -> dict[str, list[ColoredDevice]]:
+    @property
+    def provider_assignments(self) -> dict[str, list[ColoredDevice]]:
         providers_assignment: dict[str, list[ColoredDevice]] = {}
 
-        assignators = self._plugins.get_assignators()
+        assignators = self.__plugins.assignators
 
-        for provider in self._providers:
-            providers_assignment[provider.get_name()] = []
+        for provider in self.__providers:
+            providers_assignment[provider.name] = []
 
-        for device in self._devices:
-            device_assignator = device.get_assignator_name()
+        for device in self.__devices:
+            device_assignator = device.assignator_name
 
             for assignator in assignators:
-                if assignator.get_name() == device_assignator:
+                if assignator.name == device_assignator:
                     device_provider = assignator.get_assigned_provider_for_device(device)
 
                     if device_provider in providers_assignment:
@@ -82,12 +86,12 @@ class ColoredDevicesManager():
         return providers_assignment
     
     def refresh_providers_patterns(self) -> None:
-        providers_assignment = self.get_provider_assignments()
+        providers_assignment = self.provider_assignments
 
         threads: list[tuple[_threading.Thread, ColorProvider]] = []
 
-        for provider in self._providers:
-            devices = providers_assignment[provider.get_name()]
+        for provider in self.__providers:
+            devices = providers_assignment[provider.name]
 
             thread = _threading.Thread(target=provider.apply_pattern, args=(devices,))
             threads.append((thread, provider))
@@ -110,15 +114,15 @@ class ColoredDevicesManager():
                 )
     
     def refresh_plugins(self) -> None:
-        self._plugins.reload()
+        self.__plugins.reload()
 
     def main(self) -> None:
-        status_control = self._configuration.get_status_control()
+        status_control = self.__configuration.status_control
 
         status_control.mark_as_running()
 
         try:
-            while not status_control.requires_for_stop():
+            while not status_control.requires_for_stop:
                 self.refresh_plugins()
 
                 self.refresh_devices()

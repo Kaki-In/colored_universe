@@ -1,2 +1,0 @@
-from .representative import RepresentativeAssignator
-from .window_casuistic import WindowCasuisticAssignator

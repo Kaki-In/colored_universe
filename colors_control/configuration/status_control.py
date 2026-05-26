@@ -25,6 +25,7 @@ class StatusControlConfiguration(_configuration.SettingsFile[StatusControlObject
             'stopped_error': error
         })
 
+    @property
     def requires_for_stop(self) -> bool:
         return self.get_content()['required_for_stop']
 

@@ -1,2 +1,0 @@
-from .casuistic import CasuisticConfigurationDirectory
-from .representative import RepresentativeAssignatorDirectory

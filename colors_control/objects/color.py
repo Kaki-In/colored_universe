@@ -5,53 +5,66 @@ class Color:
         if not (0x000000 <= value <= 0xFFFFFF):
             raise ValueError("Color value must be between 0x000000 and 0xFFFFFF")
         
-        self._value = value
+        self.__value = value
 
-    def get_hex(self) -> str:
-        return f"#{self._value:06X}"
+    @property
+    def hex(self) -> str:
+        return f"#{self.__value:06X}"
 
-    def get_rgb(self) -> tuple[int, int, int]:
-        r = (self._value >> 16) & 0xFF
-        g = (self._value >> 8) & 0xFF
-        b = self._value & 0xFF
+    @property
+    def rgb(self) -> tuple[int, int, int]:
+        r = (self.__value >> 16) & 0xFF
+        g = (self.__value >> 8) & 0xFF
+        b = self.__value & 0xFF
 
         return (r, g, b)
 
-    def get_red(self) -> int:
-        return (self._value >> 16) & 0xFF
+    @property
+    def red(self) -> int:
+        return (self.__value >> 16) & 0xFF
 
-    def get_green(self) -> int:
-        return (self._value >> 8) & 0xFF
+    @property
+    def green(self) -> int:
+        return (self.__value >> 8) & 0xFF
 
-    def get_blue(self) -> int:
-        return self._value & 0xFF
+    @property
+    def blue(self) -> int:
+        return self.__value & 0xFF
 
-    def get_hsv(self) -> tuple[float, float, float]:
-        r, g, b = [x / 255.0 for x in self.get_rgb()]
+    @property
+    def hsv(self) -> tuple[float, float, float]:
+        r, g, b = [x / 255.0 for x in self.rgb]
         return colorsys.rgb_to_hsv(r, g, b)
 
-    def get_hue(self) -> float:
-        return self.get_hsv()[0]
+    @property
+    def hue(self) -> float:
+        return self.hsv[0]
     
-    def get_hsv_saturation(self) -> float:
-        return self.get_hsl()[2]
+    @property
+    def hsv_saturation(self) -> float:
+        return self.hsl[2]
 
-    def get_value(self) -> float:
-        return self.get_hsv()[2]
+    @property
+    def value(self) -> float:
+        return self.hsv[2]
 
-    def get_hsl(self) -> tuple[float, float, float]:
-        r, g, b = [x / 255.0 for x in self.get_rgb()]
+    @property
+    def hsl(self) -> tuple[float, float, float]:
+        r, g, b = [x / 255.0 for x in self.rgb]
         h, l, s = colorsys.rgb_to_hls(r, g, b)
         return h, s, l
 
-    def get_lightness(self) -> float:
-        return self.get_hsl()[1]
+    @property
+    def lightness(self) -> float:
+        return self.hsl[2]
 
-    def get_hsl_saturation(self) -> float:
-        return self.get_hsl()[1]
+    @property
+    def hsl_saturation(self) -> float:
+        return self.hsl[1]
 
-    def get_cmyk(self) -> tuple[float, float, float, float]:
-        r, g, b = self.get_rgb()
+    @property
+    def cmyk(self) -> tuple[float, float, float, float]:
+        r, g, b = self.rgb
         r_prime, g_prime, b_prime = r / 255.0, g / 255.0, b / 255.0
 
         k = 1 - max(r_prime, g_prime, b_prime)
@@ -64,17 +77,21 @@ class Color:
 
         return (c, m, y, k)
 
-    def get_cyan(self) -> float:
-        return self.get_cmyk()[0]
+    @property
+    def cyan(self) -> float:
+        return self.cmyk[0]
 
-    def get_magenta(self) -> float:
-        return self.get_cmyk()[1]
+    @property
+    def magenta(self) -> float:
+        return self.cmyk[1]
 
-    def get_yellow(self) -> float:
-        return self.get_cmyk()[2]
+    @property
+    def yellow(self) -> float:
+        return self.cmyk[2]
 
-    def get_black(self) -> float:
-        return self.get_cmyk()[3]
+    @property
+    def black(self) -> float:
+        return self.cmyk[3]
 
     @staticmethod
     def from_rgb(r: int, g: int, b: int) -> 'Color':
@@ -104,37 +121,37 @@ class Color:
         return Color.from_rgb(r, g, b)
 
     def __int__(self) -> int:
-        return self._value
+        return self.__value
 
     def __repr__(self) -> str:
-        return f"Color({self.get_hex()})"
+        return f"Color({self.hex})"
     
     def __hash__(self) -> int:
-        return self._value
+        return self.__value
     
     def __eq__(self, other: object) -> bool:
         if isinstance(other, int):
-            return self._value == other
+            return self.__value == other
         
         if isinstance(other, Color):
-            return other._value == self._value
+            return other.__value == self.__value
         
         raise TypeError()
 
     def __add__(self, other: object) -> 'Color':
         if type(other) is Color:
-            return Color.from_rgb(*[min(255, a + b) for a, b in zip(self.get_rgb(), other.get_rgb())])
+            return Color.from_rgb(*[min(255, a + b) for a, b in zip(self.rgb, other.rgb)])
         
         raise TypeError()
 
     def __sub__(self, other: object) -> 'Color':
         if type(other) is Color:
-            return Color.from_rgb(*[max(0, a - b) for a, b in zip(self.get_rgb(), other.get_rgb())])
+            return Color.from_rgb(*[max(0, a - b) for a, b in zip(self.rgb, other.rgb)])
         
         raise TypeError()
 
     def rotate_hue(self, degrees: float) -> 'Color':
-        h, s, v = self.get_hsv()
+        h, s, v = self.hsv
         h = (h + degrees / 360.0) % 1.0
         return Color.from_hsv(h, s, v)
 
@@ -142,8 +159,8 @@ class Color:
         if not (0 <= t <= 1):
             raise ValueError("Interpolation factor must be between 0 and 1")
         
-        r1, g1, b1 = self.get_rgb()
-        r2, g2, b2 = other.get_rgb()
+        r1, g1, b1 = self.rgb
+        r2, g2, b2 = other.rgb
 
         r = int(r1 + (r2 - r1) * t)
         g = int(g1 + (g2 - g1) * t)
@@ -155,8 +172,8 @@ class Color:
         if not (0.0 <= t <= 1.0):
             raise ValueError("Interpolation factor must be between 0 and 1")
 
-        h1, s1, v1 = self.get_hsv()
-        h2, s2, v2 = other.get_hsv()
+        h1, s1, v1 = self.hsv
+        h2, s2, v2 = other.hsv
 
         dh = (h2 - h1) % 1.0
         if dh > 0.5:
@@ -170,49 +187,49 @@ class Color:
         return Color.from_hsv(h, s, v)
 
     def with_red(self, red: int) -> 'Color':
-        _, g, b = self.get_rgb()
+        _, g, b = self.rgb
         return Color.from_rgb(max(0, min(255, red)), g, b)
 
     def with_green(self, green: int) -> 'Color':
-        r, _, b = self.get_rgb()
+        r, _, b = self.rgb
         return Color.from_rgb(r, max(0, min(255, green)), b)
 
     def with_blue(self, blue: int) -> 'Color':
-        r, g, _ = self.get_rgb()
+        r, g, _ = self.rgb
         return Color.from_rgb(r, g, max(0, min(255, blue)))
     
     def with_cyan(self, cyan: float) -> 'Color':
-        _, m, y, k = self.get_cmyk()
+        _, m, y, k = self.cmyk
         return Color.from_cmyk(cyan, m, y, k)
 
     def with_magenta(self, magenta: float) -> 'Color':
-        c, _, y, k = self.get_cmyk()
+        c, _, y, k = self.cmyk
         return Color.from_cmyk(c, magenta, y, k)
 
     def with_yellow(self, yellow: float) -> 'Color':
-        c, m, _, k = self.get_cmyk()
+        c, m, _, k = self.cmyk
         return Color.from_cmyk(c, m, yellow, k)
 
     def with_black(self, black: float) -> 'Color':
-        c, m, y, _ = self.get_cmyk()
+        c, m, y, _ = self.cmyk
         return Color.from_cmyk(c, m, y, black)
 
     def with_hue(self, hue: float) -> 'Color':
-        _, s, v = self.get_hsv()
+        _, s, v = self.hsv
         return Color.from_hsv(hue % 1.0, s, v)
 
     def with_hsl_saturation(self, saturation: float) -> 'Color':
-        h, _, l = self.get_hsl()
+        h, _, l = self.hsl
         return Color.from_hsl(h, saturation, l)
 
     def with_hsv_saturation(self, saturation: float) -> 'Color':
-        h, _, v = self.get_hsv()
+        h, _, v = self.hsv
         return Color.from_hsv(h, saturation, v)
 
     def with_value(self, value: float) -> 'Color':
-        h, s, _ = self.get_hsv()
+        h, s, _ = self.hsv
         return Color.from_hsv(h, s, value)
 
     def with_lightness(self, lightness: float) -> 'Color':
-        h, _, s = self.get_hsl()
+        h, _, s = self.hsl
         return Color.from_hsl(h, s, lightness)

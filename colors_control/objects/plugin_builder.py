@@ -16,20 +16,20 @@ from .plugin import Plugin
 
 class PluginBuilder():
     def __init__(self, pathname: str, environment: dict) -> None:
-        self._path = pathname
-        self._environment = environment
+        self.__path = pathname
+        self.__environment = environment
 
-        self._plugins: dict[str, tuple[list[str], dict[str, dict]]] = {}
-        self._loaded_plugins: dict[str, Plugin] = {}
+        self.__plugins: dict[str, tuple[list[str], dict[str, dict]]] = {}
+        self.__loaded_plugins: dict[str, Plugin] = {}
 
         _threading.excepthook = self._except_hook
 
     def get_pathname(self) -> str:
-        return self._path
+        return self.__path
 
     def load_file(self, plugin_pathname:str, plugin_name: str, file_content: str, filename:str, zip: _zipfile.ZipFile) -> dict:
-        if filename in self._plugins[plugin_pathname][1]:
-            return self._plugins[plugin_pathname][1][filename]
+        if filename in self.__plugins[plugin_pathname][1]:
+            return self.__plugins[plugin_pathname][1][filename]
 
         _linecache.cache[plugin_name + ":" + filename] = (
             len(file_content),
@@ -38,7 +38,7 @@ class PluginBuilder():
             plugin_name + ":" + filename,
         )
 
-        namespace = self._environment.copy()
+        namespace = self.__environment.copy()
         namespace["__name__"] = "plugin"
 
         i = 1
@@ -87,12 +87,12 @@ class PluginBuilder():
                         module = _types.ModuleType(instruction[2])
 
                         try:
-                            module.__dict__.update(self.load_plugin(instruction[2] + ".crp").get_namespace())
+                            module.__dict__.update(self.load_plugin(instruction[2] + ".crp").namespace)
                         except Exception as exc:
                             raise PluginError(plugin_name + ":" + filename, i, "<module>", line, exc.with_traceback(exc.__traceback__.tb_next)) from None #type:ignore because there is a call
                     
                         namespace[instruction[2]] = module
-                        self._plugins[plugin_pathname][0].append(instruction[2])
+                        self.__plugins[plugin_pathname][0].append(instruction[2])
 
                     else:
                         raise SyntaxError("invalid syntax at line " + repr(line))
@@ -141,7 +141,7 @@ class PluginBuilder():
     def get_current_hash(self, plugin_name: str) -> str:
         sha256 = _hashlib.sha256()
 
-        with open(self._path + "/" + plugin_name, "rb") as f:
+        with open(self.__path + "/" + plugin_name, "rb") as f:
             for bloc in iter(lambda: f.read(4096), b""):
                 sha256.update(bloc)
     
@@ -178,42 +178,42 @@ class PluginBuilder():
         return Plugin(self.get_current_hash(pathname), metadata["name"], pathname, device_scanners, provider_scanners, assignators, [], plugin_content)
     
     def load_plugin(self, plugin_name:str) -> Plugin:
-        if plugin_name in self._loaded_plugins:
-            return self._loaded_plugins[plugin_name]
+        if plugin_name in self.__loaded_plugins:
+            return self.__loaded_plugins[plugin_name]
     
-        self._plugins[plugin_name] = ([], {})
+        self.__plugins[plugin_name] = ([], {})
 
-        with _zipfile.ZipFile(self._path + "/" + plugin_name) as zipFile:
+        with _zipfile.ZipFile(self.__path + "/" + plugin_name) as zipFile:
             try:
                 plugin = self.execute(plugin_name, zipFile)
             except PluginError as err:
-                print("Could not load plugin at " + self._path + "/" + plugin_name+ ":")
+                print("Could not load plugin at " + self.__path + "/" + plugin_name+ ":")
                 err.print_traceback()
 
                 plugin = Plugin(self.get_current_hash(plugin_name), "<error>", plugin_name, [], [], [], [], {})
             except Exception:
-                print("Could not load plugin at " + self._path + "/" + plugin_name+ ":")
+                print("Could not load plugin at " + self.__path + "/" + plugin_name+ ":")
                 _traceback.print_exc()
             
                 plugin = Plugin(self.get_current_hash(plugin_name), "<error>", plugin_name, [], [], [], [], {})
 
-        self._loaded_plugins[plugin_name] = plugin
+        self.__loaded_plugins[plugin_name] = plugin
 
-        return self._loaded_plugins[plugin_name]
+        return self.__loaded_plugins[plugin_name]
     
     def reload_plugin(self, plugin_name: str) -> list[Plugin]:
         dependent_plugins: list[str] = []
 
-        for plugin in self._plugins:
-            if plugin_name in self._plugins[plugin][0]:
+        for plugin in self.__plugins:
+            if plugin_name in self.__plugins[plugin][0]:
                 dependent_plugins.append(plugin)
         
         for plugin in dependent_plugins:
-            del self._plugins[plugin]
-            del self._loaded_plugins[plugin]
+            del self.__plugins[plugin]
+            del self.__loaded_plugins[plugin]
         
-        del self._plugins[plugin_name]
-        del self._loaded_plugins[plugin_name]
+        del self.__plugins[plugin_name]
+        del self.__loaded_plugins[plugin_name]
 
         new_plugins: list[Plugin] = []
         new_plugins.append(self.load_plugin(plugin_name))

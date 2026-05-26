@@ -2,21 +2,23 @@ from .color import Color
 
 class ColorPattern:
     def __init__(self, *colors: Color) -> None:
-        self._colors = colors
+        self.__colors = colors
 
-    def get_colors(self) -> tuple[Color, ...]:
-        return self._colors
+    @property
+    def colors(self) -> tuple[Color, ...]:
+        return self.__colors
 
-    def get_colors_values(self) -> list[int]:
-        return [int(i) for i in self._colors]
+    @property
+    def colors_values(self) -> list[int]:
+        return [int(i) for i in self.__colors]
 
     @staticmethod
     def from_values(values: list[int]) -> 'ColorPattern':
         return ColorPattern(*[Color(value) for value in values])
     
     def ensure_pattern_length_compatibility(self, other: 'ColorPattern') -> tuple[list[Color], list[Color]]:
-        colors1 = list(self._colors)
-        colors2 = list(other.get_colors())
+        colors1 = list(self.__colors)
+        colors2 = list(other.colors)
         max_len = max(len(colors1), len(colors2))
 
         if len(colors1) == 1:

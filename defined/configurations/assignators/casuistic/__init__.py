@@ -1,2 +1,0 @@
-from .casuistic_configuration import CasuisticConfigurationDirectory
-

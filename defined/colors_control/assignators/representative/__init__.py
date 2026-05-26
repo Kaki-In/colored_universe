@@ -1,1 +1,0 @@
-from .assignator import RepresentativeAssignator

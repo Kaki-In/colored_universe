@@ -1,1 +1,0 @@
-from .xlib_thread import XLIB_LOCK
