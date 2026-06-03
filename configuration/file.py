@@ -1,6 +1,5 @@
 import json as _json
 
-import typing as _T
 import os as _os
 
 class SettingsFile[DataType]():

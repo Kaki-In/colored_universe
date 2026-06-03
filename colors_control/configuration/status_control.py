@@ -28,5 +28,17 @@ class StatusControlConfiguration(_configuration.SettingsFile[StatusControlObject
     @property
     def requires_for_stop(self) -> bool:
         return self.get_content()['required_for_stop']
+    
+    @requires_for_stop.setter
+    def requires_for_stop(self, value: bool) -> None:
+        if not self.get_content()['is_running']:
+            raise RuntimeError("not running yet")
+
+        self.overwrite({
+            'is_running': True,
+            'required_for_stop': value,
+            'stopped_error': None
+        })
+        
 
 

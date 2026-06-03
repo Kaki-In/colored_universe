@@ -12,6 +12,9 @@ from ..configuration import *
 import time as _time
 import threading as _threading
 import sys as _sys
+import traceback as _traceback
+import concurrent.futures as _concurrent_futures
+import gc
 
 class ColoredDevicesManager():
     def __init__(self, configuration: MainConfiguration) -> None:
@@ -23,6 +26,8 @@ class ColoredDevicesManager():
         self.__devices = DevicesRegister(self.__plugins)
 
         self.__configuration = configuration
+        
+        self.__executor = _concurrent_futures.ThreadPoolExecutor(max_workers=8)
 
         globals["PROVIDERS"] = self.__providers
         globals["DEVICES"] = self.__devices
@@ -96,31 +101,26 @@ class ColoredDevicesManager():
 
         threads: list[tuple[_threading.Thread, ColorProvider]] = []
 
-        for provider in self.__providers:
-            devices = providers_assignment[provider.name]
+        futures = [
+            self.__executor.submit(provider.apply_pattern, providers_assignment[provider.name])
+            for provider in self.__providers
+        ]
 
-            thread = _threading.Thread(target=provider.apply_pattern, args=(devices,))
-            threads.append((thread, provider))
-        
         for device in providers_assignment[None]:
             device.apply_no_pattern()
         
         for thread, _ in threads:
             thread.start()
 
-        _time.sleep(0.08)
+        _time.sleep(0.05)
             
-        for thread, provider in threads:
+        for future in futures:
             try:
-                if thread.is_alive():
-                    thread.join(timeout=1)
-
+                future.result(timeout=1)
             except Exception as exc:
-                print(
-                    "An error occured while joining to thread", thread, ":", repr(exc),
-                    file=_sys.stderr,
-                    flush=True
-                )
+                print("An error occured:", repr(exc), file=_sys.stderr, flush=True)
+                
+        gc.collect()
     
     def refresh_plugins(self) -> None:
         self.__plugins.reload()
@@ -138,8 +138,8 @@ class ColoredDevicesManager():
                 self.refresh_providers()
 
                 self.refresh_providers_patterns()
-        except Exception as exc:
-            status_control.mark_as_stopped(str(exc))
+        except BaseException:
+            status_control.mark_as_stopped(_traceback.format_exc())
             raise
 
         else:

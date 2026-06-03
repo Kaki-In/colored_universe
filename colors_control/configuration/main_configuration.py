@@ -7,11 +7,9 @@ from .assignators import AssignatorsConfigurationDirectory
 
 from .status_control import StatusControlConfiguration
 
-DEFAULT_CONF_DIR = _os.environ["HOME"] + _os.path.sep + ".colored_universe"
-
 class MainConfiguration(_configuration.SettingsDirectory):
-    def __init__(self) -> None:
-        super().__init__(DEFAULT_CONF_DIR)
+    def __init__(self, path: str) -> None:
+        super().__init__(path)
 
         self.__providers_configuration = ProvidersScannersConfigurationDirectory(self._create_sub_element_path("providers"))
         self.__devices_configuration = DevicesScannersConfigurationDirectory(self._create_sub_element_path("devices"))
