@@ -1,20 +1,16 @@
-from .color_provider import ColorProvider
 from .device import ColoredDevice
 
 from .devices_register import DevicesRegister
 from .provider_register import ProvidersRegister
-from .provider_assignator import DeviceProviderAssignator
 
 from .plugins_register import PluginsRegister
 
 from ..configuration import *
 
 import time as _time
-import threading as _threading
 import sys as _sys
 import traceback as _traceback
 import concurrent.futures as _concurrent_futures
-import gc
 
 class ColoredDevicesManager():
     def __init__(self, configuration: MainConfiguration) -> None:
@@ -99,8 +95,6 @@ class ColoredDevicesManager():
     def refresh_providers_patterns(self) -> None:
         providers_assignment = self.provider_assignments
 
-        threads: list[tuple[_threading.Thread, ColorProvider]] = []
-
         futures = [
             self.__executor.submit(provider.apply_pattern, providers_assignment[provider.name])
             for provider in self.__providers
@@ -109,39 +103,38 @@ class ColoredDevicesManager():
         for device in providers_assignment[None]:
             device.apply_no_pattern()
         
-        for thread, _ in threads:
-            thread.start()
-
         _time.sleep(0.05)
-            
+
         for future in futures:
             try:
                 future.result(timeout=1)
             except Exception as exc:
                 print("An error occured:", repr(exc), file=_sys.stderr, flush=True)
-                
-        gc.collect()
     
     def refresh_plugins(self) -> None:
         self.__plugins.reload()
 
     def main(self) -> None:
         status_control = self.__configuration.status_control
-
         status_control.mark_as_running()
-
+        
         try:
             while not status_control.requires_for_stop:
                 self.refresh_plugins()
-
+                
                 self.refresh_devices()
                 self.refresh_providers()
-
+                
                 self.refresh_providers_patterns()
+                
+        except KeyboardInterrupt:
+            status_control.mark_as_stopped()
+            raise
+
         except BaseException:
             status_control.mark_as_stopped(_traceback.format_exc())
             raise
-
+        
         else:
             status_control.mark_as_stopped()
 

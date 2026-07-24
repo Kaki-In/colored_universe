@@ -18,6 +18,7 @@ def main(args: list[str]):
     
     run_parser = subparsers.add_parser("run", aliases=['r'], help="runs the server")
     run_parser.add_argument("--background", '-b', default=False, action="store_true", required=False, help="launch and run silently in background")
+    run_parser.add_argument("--force", '-f', default=False, action="store_true", required=False, help="forces launches, even if the service is supposed to be running")
     
     subparsers.add_parser("stop", aliases=['s'], help="stops the server")
     subparsers.add_parser("status", aliases=['st'], help="returns the status of the server")
@@ -27,18 +28,23 @@ def main(args: list[str]):
     
     parsed_args = parser.parse_args(args[1:])
     
+    configuration = MainConfiguration(parsed_args.conf_directory)
     match(parsed_args.command):
         case 'run':
+            if not parsed_args.force:
+                
+                if configuration.status_control.get_content()['is_running']:
+                   print("The service is already running. If you're sure that it is not, please use the -f flag.")
+                   return 400
+            
             if parsed_args.background:
-                subprocess.Popen(["python", sys.argv[0], '-d', parsed_args.conf_directory, 'run'], start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL)
+                subprocess.Popen(["python", sys.argv[0], '-d', parsed_args.conf_directory, 'run'] + (['-f'] if parsed_args.force else []), start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL)
             else:
-                configuration = MainConfiguration(parsed_args.conf_directory)
                 manager = ColoredDevicesManager(configuration)
                 
                 return manager.main()
                 
         case 'stop':
-            configuration = MainConfiguration(parsed_args.conf_directory)
             configuration.status_control.requires_for_stop = True
             
             try:
@@ -50,13 +56,11 @@ def main(args: list[str]):
             return 0
     
         case 'status':
-            configuration = MainConfiguration(parsed_args.conf_directory)
             data = configuration.status_control.get_content()
             
             print("running" if data['is_running'] else ("error" if data['stopped_error'] else "stopped"))
         
         case 'error':
-            configuration = MainConfiguration(parsed_args.conf_directory)
             data = configuration.status_control.get_content()
             
             if data['stopped_error'] is not None:
